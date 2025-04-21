@@ -1,0 +1,6 @@
+<!-- ...existing keys... -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Allow app to access your location while in use for map display.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>Allow app to access your location in the background for real‑time updates.</string>
+<!-- ...existing keys... -->
