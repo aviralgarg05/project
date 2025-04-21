@@ -12,3 +12,4 @@ def post_command():
 @voice_bp.route('', methods=['GET'])
 def get_commands():
     return jsonify(_commands), 200
+
