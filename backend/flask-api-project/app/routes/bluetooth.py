@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, abort
-from . import db
-from ..models import Device
+from db import db
+from app.models import Device
 
 bt_bp = Blueprint('bluetooth', __name__)
 

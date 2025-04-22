@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, abort
-from . import db
-from .models import Contact
+from db import db
+from app.models import Contact
 
 contacts_bp = Blueprint('contacts', __name__)
 

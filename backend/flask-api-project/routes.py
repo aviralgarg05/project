@@ -1,51 +1,39 @@
+import os
 from flask import Blueprint, request, jsonify
 from twilio.rest import Client
-import os
+from twilio.base.exceptions import TwilioRestException
 
-main = Blueprint('main', __name__)
+main = Blueprint('emergency', __name__)
 
-# Read credentials from environment
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN  = os.getenv('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER= os.getenv('TWILIO_PHONE_NUMBER')
+# ← hard‑coded credentials for test only
+TWILIO_ACCOUNT_SID   = 'AC443ff39b8848da1bb5c5608da917a8f6'
+TWILIO_AUTH_TOKEN    = 'cf7fc928cc6f0f8e9f0a3ad5d738c35d'
+TWILIO_PHONE_NUMBER  = '+13156704064'
+EMERGENCY_NUMBER     = '+919971195728'
 
-@main.route('/submit', methods=['POST'])
-def submit():
-    data = request.get_json() or {}
-    name            = data.get('name')
-    address         = data.get('address')
-    phone           = data.get('phone')
-    emergency_number= data.get('emergency_number')
+# strip whitespace and verify
+sid = TWILIO_ACCOUNT_SID.strip()
+token = TWILIO_AUTH_TOKEN.strip()
+print("Using SID:", repr(sid))
+print("Using TOKEN:", repr(token))
 
-    # Validate input
-    if not all([name, address, phone, emergency_number]):
-        return jsonify({"error": "All fields are required"}), 400
+client = Client(sid, token)
 
-    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+@main.route('/send', methods=['POST'])
+def send_emergency():
+    data    = request.get_json() or {}
+    name    = data.get('name', 'Unknown')
+    address = data.get('address', 'Unknown')
+    phone   = data.get('phone', EMERGENCY_NUMBER)
 
-    # 1️⃣ Send SMS back to user
     try:
-        message = client.messages.create(
-            body=f"Name: {name}\nAddress: {address}\nPhone: {phone}",
+        msg = client.messages.create(
+            body=f"EMERGENCY from {name}\nAddress: {address}\nPhone: {phone}",
             from_=TWILIO_PHONE_NUMBER,
-            to=phone
+            to=EMERGENCY_NUMBER
         )
-    except Exception as e:
-        return jsonify({"error": f"Failed to send SMS: {str(e)}"}), 500
+    except TwilioRestException as e:
+        return jsonify({'error': e.msg, 'twilio_code': e.code}), 400
 
-    # 2️⃣ Initiate emergency call
-    try:
-        call = client.calls.create(
-            twiml=f'<Response><Say>This is an emergency call for {name}. Please respond immediately.</Say></Response>',
-            from_=TWILIO_PHONE_NUMBER,
-            to=emergency_number
-        )
-    except Exception as e:
-        return jsonify({"error": f"Failed to initiate emergency call: {str(e)}"}), 500
-
-    return jsonify({
-        "message": "Data sent successfully via SMS and emergency call initiated",
-        "sms_sid": message.sid,
-        "call_sid": call.sid
-    }), 200
+    return jsonify({'sms_sid': msg.sid}), 200
 
