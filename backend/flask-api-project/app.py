@@ -1,15 +1,24 @@
 from flask import Flask
 from dotenv import load_dotenv
-import os
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 
-# Load .env variables
 load_dotenv()
 
-from routes.sms import main as sms_blueprint
-
 app = Flask(__name__)
-app.register_blueprint(sms_blueprint, url_prefix='/api')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///contacts.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+CORS(app)
+
+db = SQLAlchemy(app)
+
+# import model so table is created
+from app.models import Contact  
+db.create_all()
+
+# register contacts routes under /api/contacts
+from app.routes.contacts import contacts_bp  
+app.register_blueprint(contacts_bp, url_prefix='/api/contacts')
 
 if __name__ == '__main__':
-    # Default port 5000; debug on for auto-reload
     app.run(host='0.0.0.0', port=5000, debug=True)
