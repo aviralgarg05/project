@@ -35,18 +35,18 @@ export default function NavigationScreen() {
 
       // Persist address AND coordinates to server
       try {
-        await fetch(`${API_URL}/userinfo`, {
+        const resp = await fetch(`${API_URL}/userinfo`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            address: address, // Send the geocoded address
-            latitude: currentCoords.latitude, // Send current latitude
-            longitude: currentCoords.longitude // Send current longitude
-          }),
+          body: JSON.stringify({ address, latitude: currentCoords.latitude, longitude: currentCoords.longitude }),
         });
+        if (!resp.ok) {
+          const err = await resp.text();
+          Alert.alert('Update failed', err);
+        }
       } catch (e) {
         console.warn("Failed to update user info:", e);
-        // Optionally alert the user
+        Alert.alert('Network Error', 'Unable to update location on server');
       }
 
       sub = await Location.watchPositionAsync(
@@ -74,10 +74,14 @@ export default function NavigationScreen() {
       });
       const json = await res.json();
       console.log('Server response:', json);
-      Alert.alert('Success', 'Emergency link sent');
+      if (res.ok) {
+        Alert.alert('Success', `SMS sent (SID: ${json.sms_sid})`);
+      } else {
+        Alert.alert('Error', json.error || 'Failed to send emergency');
+      }
     } catch (e) {
       console.warn('Fetch error:', e);
-      Alert.alert('Error', 'Failed to send emergency');
+      Alert.alert('Error', 'Network error sending emergency');
     }
   };
 

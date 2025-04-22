@@ -11,6 +11,13 @@ export default function NavigationScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('Using API_URL =', API_URL);
+    // quick connectivity check
+    fetch(`${API_URL}/ping`)
+      .then(r => r.json())
+      .then(js => console.log('Ping OK:', js))
+      .catch(e => console.warn('Ping failed:', e));
+
     let sub: Location.LocationSubscription | undefined;
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -55,16 +62,24 @@ export default function NavigationScreen() {
   }, []);
 
   const sendEmergency = async () => {
-    if (!region) return;
+    console.log('POST →', `${API_URL}/emergency/send`, { latitude: region?.latitude, longitude: region?.longitude });
+    if (!region) return Alert.alert('Error', 'No location yet');
     try {
-      await fetch(`${API_URL}/emergency/send`, {
+      const res = await fetch(`${API_URL}/emergency/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ latitude: region.latitude, longitude: region.longitude }),
       });
-      Alert.alert('Success', 'Emergency link sent');
-    } catch {
-      Alert.alert('Error', 'Failed to send emergency');
+      const json = await res.json();
+      console.log('Server response:', json);
+      if (res.ok) {
+        Alert.alert('Success', `SMS sent (SID: ${json.sms_sid})`);
+      } else {
+        Alert.alert('Error', json.error || 'Failed to send emergency');
+      }
+    } catch (e) {
+      console.warn('Fetch error:', e);
+      Alert.alert('Error', 'Network error sending emergency');
     }
   };
 
