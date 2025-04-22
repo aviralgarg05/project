@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
+import MapView from 'react-native-maps';
+// @ts-ignore
+const { Marker } = MapView;
 
 type RegionType = {
   latitude: number;
@@ -19,19 +21,18 @@ export default function NavigationScreen() {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
+        setErrorMsg('Location permission denied');
         return;
       }
       sub = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.Highest, distanceInterval: 1 },
-        ({ coords }) => {
+        ({ coords }) =>
           setRegion({
             latitude: coords.latitude,
             longitude: coords.longitude,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          });
-        }
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          })
       );
     })();
     return () => sub?.remove();
@@ -40,7 +41,7 @@ export default function NavigationScreen() {
   if (errorMsg) {
     return (
       <View style={styles.center}>
-        <Text style={{ color: '#fff' }}>{errorMsg}</Text>
+        <Text style={styles.text}>{errorMsg}</Text>
       </View>
     );
   }
@@ -57,13 +58,15 @@ export default function NavigationScreen() {
       style={styles.map}
       region={region}
       showsUserLocation
+      followsUserLocation
     >
-      <MapView.Marker coordinate={region} title="You are here" />
+      <Marker coordinate={region} title="You are here" />
     </MapView>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
-  map: { flex: 1 },
+  center:    { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
+  map:       { flex: 1 },
+  text:      { color: '#fff', fontSize: 18, marginVertical: 4 },
 });

@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.ridesafe",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "RideSafe needs your location to show your position on the map."
+        "NSLocationWhenInUseUsageDescription": "RideSafe needs your location to show your position."
       }
     },
     "android": {
