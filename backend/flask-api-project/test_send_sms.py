@@ -5,7 +5,8 @@ from twilio.rest import Client
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token  = os.getenv("TWILIO_AUTH_TOKEN")
 from_number = os.getenv("TWILIO_PHONE_NUMBER")
-to_number   = os.getenv("TEST_RECIPIENT_PHONE")  # set this in your .env
+# fallback to EMERGENCY_NUMBER for quick local tests
+to_number   = os.getenv("TEST_RECIPIENT_PHONE") or os.getenv("EMERGENCY_NUMBER")
 
 client = Client(account_sid, auth_token)
 
@@ -14,4 +15,4 @@ message = client.messages.create(
     from_=from_number,
     to=to_number
 )
-print("Message SID:", message.sid)
+print(f"Message SID: {message.sid}, status: {message.status}")

@@ -1,24 +1,54 @@
 import sys, os
 from dotenv import load_dotenv
-load_dotenv()                                # ← load env before routes
+load_dotenv()
+
 sys.path.insert(0, os.path.dirname(__file__))
-import routes                                # now TWILIO_* are set
-from flask import Flask
+import routes
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-from pyngrok import ngrok
-from pyngrok.exception import PyngrokNgrokError
-from db import db               # ← use standalone db
+from db import db
+from sqlalchemy.exc import OperationalError
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
-CORS(app)
 
-db.init_app(app)               # ← initialize db
+# Allow CORS from everywhere with both HTTP and HTTPS support
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
+# Seed initial data
+db.init_app(app)
 with app.app_context():
-    from app.models import Contact, Device
+    from app.models import Contact, Device, UserInfo
+
+    # force rebuild all tables so new columns (last_latitude/last_longitude) are applied
+    db.drop_all()
     db.create_all()
 
-# register controllers
+    # safely query for default user
+    try:
+        existing = UserInfo.query.get(1)
+    except OperationalError:
+        existing = None
+
+    if not existing:
+        db.session.add(UserInfo(
+            id=1,
+            name='Aviral',
+            address='Delhi, India',
+            phone_number='+919971195728'
+        ))
+        db.session.commit()
+
+    # Create default Contact if needed
+    if not Contact.query.first():
+        db.session.add(Contact(
+            id=1,
+            name='Aviral',
+            phone='+919971195728'
+        ))
+        db.session.commit()
+
+# Register controllers
 from app.routes.contacts import contacts_bp
 from app.routes.bluetooth import bt_bp
 from app.routes.location import location_bp
@@ -36,18 +66,28 @@ app.register_blueprint(alerts_bp,   url_prefix='/api/alerts')
 app.register_blueprint(bt_bp,       url_prefix='/api/bluetooth')
 app.register_blueprint(routes.main, url_prefix='/api/emergency')
 
-# add health check at root
+# Add health check endpoint
 @app.route('/', methods=['GET'])
 def health_check():
-    return {"status": "ok", "message": "RideSafe API running"}, 200
+    return jsonify({"status": "ok", "message": "RideSafe API running"}), 200
+
+# Test endpoint for API connectivity
+@app.route('/test', methods=['GET', 'POST'])
+def test_endpoint():
+    return jsonify({"status": "success", "message": "API test endpoint reached"}), 200
+
+# Debug endpoint to verify connection
+@app.route('/api/ping', methods=['GET', 'POST'])
+def ping():
+    return jsonify({
+        "status": "success", 
+        "message": "API is working!",
+        "headers": dict(request.headers),
+        "remote_addr": request.remote_addr
+    }), 200
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
-    if os.getenv('SKIP_NGROK', '0') != '1':
-        try:
-            public_url = ngrok.connect(port).public_url
-            print(f" * ngrok tunnel running at {public_url}")
-        except PyngrokNgrokError as e:
-            print("⚠️ ngrok tunnel failed:", e)
-            print(f"→ You can manually run: ngrok http {port}")
+    port = int(os.getenv('PORT', 5001))
+    print(f"* Local API server running at: http://127.0.0.1:{port}/")
+    print(f"* For network access, use: http://YOUR_IP_ADDRESS:{port}/")
     app.run(host='0.0.0.0', port=port, debug=True)

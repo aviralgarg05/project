@@ -1,102 +1,69 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { API_URL } from '../../config';
-
-// define quick actions with literal icon names
-const quickActions = [
-  { icon: 'calendar', label: 'Previous Usages' },
-  { icon: 'medal-outline', label: 'Customise' },
-  { icon: 'trending-up', label: 'Helmet Health' },
-] as const;
-
-type QuickAction = typeof quickActions[number];
 
 export default function ProfileScreen() {
-  const [user, setUser] = useState<{ name?: string; bio?: string }>({});
-
-  useEffect(() => {
-    fetch(`${API_URL}/userinfo`)
-      .then(r => r.json())
-      .then(setUser)
-      .catch(console.warn);
-  }, []);
-
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80' }}
-              style={styles.profileImage}
-            />
-            <Text style={styles.name}>{user.name || 'Aviral Garg'}</Text>
-            <Text style={styles.bio}>{user.bio || 'Tech Enthusiast  | Innovator | Problem Solver'}</Text>
-          </View>
-          <Pressable style={styles.settingsButton}>
-            <MaterialCommunityIcons name="cog-outline" size={24} color="#007AFF" />
-          </Pressable>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <Image
+            source={{ uri: 'https://www.shutterstock.com/image-vector/female-avatar-icon-no-face-600nw-2069253947.jpg' }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.name}>Tanya Gupta</Text>
+          <Text style={styles.bio}>            Your Ride | Our Watch | Always Safe</Text>
         </View>
+        <Pressable style={styles.settingsButton}>
+          <MaterialCommunityIcons name="cog" size={24} color="#00e676" />
+        </Pressable>
+      </View>
 
-        <View style={styles.stats}>
+      <View style={styles.stats}>
 
-        </View>
+      </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.actionGrid}>
-            {quickActions.map((action, index) => (
-              <Pressable
-                key={index}
-                style={styles.actionButton}
-                onPress={() =>
-                  Alert.alert('Quick Action', action.label)
-                }
-              >
-                <MaterialCommunityIcons name={action.icon} size={24} color="#007AFF" />
-                <Text style={styles.actionLabel}>{action.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Achievements</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionGrid}>
           {[
-            {
-              title: '10K Runner',
-              description: 'Completed first 10K run',
-              date: 'March 8, 2024',
-            },
-            {
-              title: 'Workout Streak',
-              description: '30 days consecutive workouts',
-              date: 'March 1, 2024',
-            },
-          ].map((achievement, index) => (
-            <View key={index} style={styles.achievementCard}>
-              <MaterialCommunityIcons name="medal-outline" size={24} color="#007AFF" />
-              <View style={styles.achievementInfo}>
-                <Text style={styles.achievementTitle}>{achievement.title}</Text>
-                <Text style={styles.achievementDesc}>{achievement.description}</Text>
-                <Text style={styles.achievementDate}>{achievement.date}</Text>
-              </View>
-            </View>
+            { name: 'account-alert', label: 'Alert Contact' },
+            { name: 'crash', label: 'Crash Detection' },
+            { name: 'map-legend', label: 'Ride Insights' },
+          ].map((action, i) => (
+            <Pressable key={i} style={styles.actionButton}>
+              <MaterialCommunityIcons name={action.name} size={24} color="#00e676" />
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </Pressable>
           ))}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>About Me</Text>
+        {[
+          { title: 'Connected Phone', description: '7701XXXXXX' },
+          { title: 'Linked Email', description: 'example@example.com' },
+        ].map((about, i) => (
+          <View key={i} style={styles.aboutCard}>
+            <MaterialCommunityIcons name="account" size={24} color="#00e676" />
+            <View style={styles.aboutInfo}>
+              <Text style={styles.aboutTitle}>{about.title}</Text>
+              <Text style={styles.aboutDesc}>{about.description}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#000000',
   },
   header: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000',
     padding: 20,
     paddingTop: 60,
     flexDirection: 'row',
@@ -115,13 +82,13 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
-    color: '#1c1c1e',
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   bio: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#8e8e93',
+    color: '#808080',
     textAlign: 'center',
   },
   settingsButton: {
@@ -129,9 +96,11 @@ const styles = StyleSheet.create({
   },
   stats: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
     padding: 20,
     marginTop: 12,
+    marginHorizontal: 5,
   },
   statItem: {
     flex: 1,
@@ -140,7 +109,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
-    color: '#1c1c1e',
+    color: '#1a1a1a',
   },
   statLabel: {
     fontSize: 14,
@@ -158,7 +127,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontFamily: 'Inter-SemiBold',
-    color: '#1c1c1e',
+    color: '#F8F9FA',
     marginBottom: 16,
   },
   actionGrid: {
@@ -167,7 +136,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#1a1a1a',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -176,32 +145,32 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    color: '#1c1c1e',
+    color: '#ffffff',
   },
-  achievementCard: {
+  aboutCard: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#1a1a1a',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
     alignItems: 'center',
   },
-  achievementInfo: {
+  aboutInfo: {
     marginLeft: 16,
     flex: 1,
   },
-  achievementTitle: {
+  aboutTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#1c1c1e',
+    color: '#FFFFFF',
   },
-  achievementDesc: {
+  aboutDesc: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#8e8e93',
     marginTop: 2,
   },
-  achievementDate: {
+  aboutDate: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#8e8e93',
