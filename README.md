@@ -31,3 +31,21 @@ After rewriting, force‑push:
 ```bash
 git push --force-with-lease origin main
 ```
+
+## Windows Clone Issue
+
+When cloning on Windows you may see:
+```
+error: invalid path 'backend/flask-api-project/app/__init__.py'
+fatal: unable to checkout working tree
+```
+This is due to NTFS filename protection. To allow `__init__.py`, run:
+
+```bash
+git config --global core.protectNTFS false
+```
+
+Then reclone:
+```bash
+git clone https://github.com/aviralgarg05/project.git
+```

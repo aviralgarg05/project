@@ -5,6 +5,7 @@ from .contacts import contacts_bp
 from .voice import voice_bp
 from .rides import rides_bp
 from .alerts import alerts_bp
+from .bluetooth import bt_bp
 
 def create_routes(app: Flask):
     app.register_blueprint(user_bp,     url_prefix='/api/userinfo')
@@ -13,3 +14,4 @@ def create_routes(app: Flask):
     app.register_blueprint(voice_bp,    url_prefix='/api/voice-commands')
     app.register_blueprint(rides_bp,    url_prefix='/api/rides')
     app.register_blueprint(alerts_bp,   url_prefix='/api/alerts')
+    app.register_blueprint(bt_bp,       url_prefix='/api/bluetooth')

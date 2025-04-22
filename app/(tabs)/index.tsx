@@ -1,10 +1,48 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, Pressable,
+  Image, Button, Alert, Platform, Linking
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { API_URL } from '../../config';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [btConnected, setBtConnected] = useState(false);
+
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch(`${API_URL}/bluetooth`);
+      const js = await res.json();
+      setBtConnected(js.connected);
+    } catch {
+      Alert.alert('Error', 'Cannot fetch helmet status');
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+  const handleConnect = () => {
+    if (!btConnected) {
+      // open system Bluetooth/settings
+      if (Platform.OS === 'android') {
+        Linking.openSettings();
+      } else {
+        Linking.openURL('App-Prefs:Bluetooth');
+      }
+      Alert.alert(
+        'Pairing',
+        'Once RideSafe Helmet is paired, tap OK.',
+        [{ text: 'OK', onPress: () => setBtConnected(true) }]
+      );
+    } else {
+      setBtConnected(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -21,16 +59,22 @@ export default function HomeScreen() {
         />
       </LinearGradient>
 
-      <View style={styles.helmetStats}>
+      <View style={styles.stats}>
+        <View style={styles.statCard}>
+          <MaterialCommunityIcons
+            name="bluetooth"
+            size={24}
+            color={btConnected ? '#00E676' : '#888'}
+          />
+          <Text style={styles.statValue}>
+            {btConnected ? 'Connected' : 'Disconnected'}
+          </Text>
+          <Text style={styles.statLabel}>RideSafe Helmet</Text>
+        </View>
         <View style={styles.statCard}>
           <MaterialCommunityIcons name="battery" size={24} color="#00E676" />
           <Text style={styles.statValue}>85%</Text>
           <Text style={styles.statLabel}>Battery</Text>
-        </View>
-        <View style={styles.statCard}>
-          <MaterialCommunityIcons name="bluetooth" size={24} color="#00E676" />
-          <Text style={styles.statValue}>Connected</Text>
-          <Text style={styles.statLabel}>Status</Text>
         </View>
         <View style={styles.statCard}>
           <MaterialCommunityIcons name="thermometer" size={24} color="#00E676" />
@@ -42,6 +86,13 @@ export default function HomeScreen() {
           <Text style={styles.statValue}>Good</Text>
           <Text style={styles.statLabel}>Ventilation</Text>
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Button
+          title={btConnected ? 'Disconnect RideSafe Helmet' : 'Connect RideSafe Helmet'}
+          onPress={handleConnect}
+        />
       </View>
 
       <View style={styles.section}>
@@ -151,30 +202,22 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginLeft: 20,
   },
-  helmetStats: {
+  stats: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 10,
-    gap: 10,
+    justifyContent: 'space-around',
+    marginVertical: 20,
   },
   statCard: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 16,
-    padding: 16,
     alignItems: 'center',
-    gap: 8,
   },
   statValue: {
-    fontSize: 20,
-    fontFamily: 'SpaceGrotesk-Bold',
-    color: '#FFFFFF',
+    color: '#FFF',
+    fontSize: 16,
+    marginTop: 4,
   },
   statLabel: {
-    fontSize: 14,
-    fontFamily: 'SpaceGrotesk-Regular',
-    color: '#808080',
+    color: '#888',
+    fontSize: 12,
   },
   section: {
     padding: 20,
